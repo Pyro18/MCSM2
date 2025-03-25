@@ -6,13 +6,19 @@ class DownloadServerUseCase {
 
   DownloadServerUseCase(this.repository);
 
-  // Scarica un server. Restituisce uno stream con il progresso del download.
   Stream<double> call(ServerVersion version, String destinationPath) {
     return repository.downloadServer(version, destinationPath);
   }
 
-  // Verifica se un server esiste già
   Future<bool> serverExists(String serverPath, String jarName) {
     return repository.serverJarExists(serverPath, jarName);
+  }
+
+  Future<List<String>> getAvailablePaperVersions({String minVersion = '1.8.9'}) {
+    return repository.getAvailablePaperVersions(minVersion: minVersion);
+  }
+
+  Future<List<int>> getPaperBuildsForVersion(String version) {
+    return repository.getPaperBuildsForVersion(version);
   }
 }

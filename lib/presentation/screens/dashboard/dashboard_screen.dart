@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_it/get_it.dart';
 
 import '../../blocs/server_list/server_list_bloc.dart';
 import '../../blocs/server/server_bloc.dart';
+import '../../blocs/version_selector/version_selector_bloc.dart';
 import '../console/console_screen.dart';
+import '../server_creation/server_creation_screen.dart';
+import '../../screens/server_download/utility/server_download_utility_screen.dart';
 import '../../common_widgets/server_status_indicator.dart';
 import '../../themes/app_theme.dart';
+import '../../../domain/usecases/download_server.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({Key? key}) : super(key: key);
@@ -67,13 +72,6 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
             ),
           ),
         ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // Add new server
-        },
-        backgroundColor: AppTheme.primaryColor,
-        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }
@@ -215,7 +213,15 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
                     minimumSize: const Size(0, 32),
                   ),
-                  onPressed: () {},
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) => BlocProvider(
+                        create: (context) => GetIt.instance<VersionSelectorBloc>(),
+                        child: const ServerCreationDialog(),
+                      ),
+                    );
+                  },
                 ),
               ],
             ),
@@ -410,10 +416,29 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
                   ),
                   const SizedBox(width: 8),
                   IconButton(
+                    tooltip: 'Aggiorna Server',
                     icon: const Icon(Icons.refresh),
                     onPressed: () {
                       context.read<ServerBloc>().add(LoadServer(server.id));
                     },
+                  ),
+                  IconButton(
+                    tooltip: 'Scarica Aggiornamenti',
+                    icon: const Icon(Icons.download),
+                    onPressed: !server.isRunning
+                        ? () {
+
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => BlocProvider(
+                            create: (context) => GetIt.instance<VersionSelectorBloc>(),
+                            child: const ServerDownloadUtilityScreen(),
+                          ),
+                        ),
+                      );
+                    }
+                        : null,
                   ),
                 ],
               ),

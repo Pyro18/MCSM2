@@ -1,7 +1,7 @@
 class ServerVersion {
   final String version;
-  final String type; // 'spigot', 'paper', 'vanilla'
-  final String? build; // Opzionale, solo per paper
+  final String type;
+  final String? build;
 
   const ServerVersion({
     required this.version,
@@ -45,7 +45,6 @@ class ServerVersion {
     }
   }
 
-  // Nome del file JAR per questa versione
   String getJarFileName() {
     switch (type) {
       case 'paper':
@@ -57,5 +56,36 @@ class ServerVersion {
       default:
         return '$type-$version.jar';
     }
+  }
+
+  static ServerVersion? fromJarFileName(String fileName) {
+    final paperRegex = RegExp(r'paper-(\d+\.\d+(\.\d+)?)(\.jar)$');
+    if (paperRegex.hasMatch(fileName)) {
+      final match = paperRegex.firstMatch(fileName);
+      final version = match?.group(1);
+      if (version != null) {
+        return ServerVersion.paper(version);
+      }
+    }
+
+    final spigotRegex = RegExp(r'spigot-(\d+\.\d+(\.\d+)?)(\.jar)$');
+    if (spigotRegex.hasMatch(fileName)) {
+      final match = spigotRegex.firstMatch(fileName);
+      final version = match?.group(1);
+      if (version != null) {
+        return ServerVersion.spigot(version);
+      }
+    }
+
+    final vanillaRegex = RegExp(r'minecraft_server\.(\d+\.\d+(\.\d+)?)(\.jar)$');
+    if (vanillaRegex.hasMatch(fileName)) {
+      final match = vanillaRegex.firstMatch(fileName);
+      final version = match?.group(1);
+      if (version != null) {
+        return ServerVersion.vanilla(version);
+      }
+    }
+
+    return null;
   }
 }

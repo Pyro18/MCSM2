@@ -25,7 +25,6 @@ class PreferencesDatasourceImpl implements PreferencesDatasource {
       final List<dynamic> decoded = jsonDecode(serverListJson);
       return decoded.cast<Map<String, dynamic>>();
     } catch (e) {
-      // In caso di errore, ritorna una lista vuota
       return [];
     }
   }

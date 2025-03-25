@@ -12,12 +12,16 @@ import '../datasources/local/preferences_datasource.dart';
 import '../models/server_model.dart';
 import '../models/player_model.dart';
 import '../models/plugin_model.dart';
+import '../../core/constants/server_version.dart';
+import '../../core/services/download_service.dart';
 
 class MinecraftServerRepositoryImpl implements MinecraftServerRepository {
   final PreferencesDatasource _preferences;
+  final DownloadService _downloadService;
   final Map<String, ProcessManager> _serverProcesses = {};
 
-  MinecraftServerRepositoryImpl(this._preferences);
+  MinecraftServerRepositoryImpl(this._preferences)
+      : _downloadService = DownloadService();
 
   @override
   Future<List<Server>> getServers() async {
@@ -180,24 +184,22 @@ class MinecraftServerRepositoryImpl implements MinecraftServerRepository {
     })
         .where((entry) => entry != null);
 
-    // Utilizza un BehaviorSubject come accumulator per tenere traccia dello stato corrente
     final playerListSubject = BehaviorSubject<List<String>>.seeded([]);
 
     playerStream.listen((entry) {
       if (entry != null) {
         final currentList = List<String>.from(playerListSubject.value);
-        if (entry.value) { // joining
+        if (entry.value) {
           if (!currentList.contains(entry.key)) {
             currentList.add(entry.key);
           }
-        } else { // leaving
+        } else {
           currentList.remove(entry.key);
         }
         playerListSubject.add(currentList);
       }
     });
 
-    // Converti i nomi dei giocatori in oggetti Player
     return playerListSubject.stream.map((playerNames) {
       return playerNames.map((name) => PlayerModel(
         id: name,
@@ -235,5 +237,25 @@ class MinecraftServerRepositoryImpl implements MinecraftServerRepository {
     } catch (e) {
       return [];
     }
+  }
+
+  @override
+  Stream<double> downloadServer(ServerVersion version, String destinationPath) {
+    return _downloadService.downloadServerVersion(version, destinationPath);
+  }
+
+  @override
+  Future<bool> serverJarExists(String serverPath, String jarName) {
+    return _downloadService.jarExists(serverPath, jarName);
+  }
+
+  @override
+  Future<List<String>> getAvailablePaperVersions({String minVersion = '1.8.9'}) {
+    return _downloadService.getAvailablePaperVersions(minVersion: minVersion);
+  }
+
+  @override
+  Future<List<int>> getPaperBuildsForVersion(String version) {
+    return _downloadService.getPaperBuildsForVersion(version);
   }
 }
